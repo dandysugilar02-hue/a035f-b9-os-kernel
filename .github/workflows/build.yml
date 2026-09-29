@@ -17,11 +17,18 @@ jobs:
           rm -rf drivers/input/touchscreen/mediatek/hxchipset
           sed -i '/hxchipset/d' drivers/input/touchscreen/mediatek/Kconfig 2>/dev/null || true
           sed -i '/hxchipset/d' drivers/input/touchscreen/Kconfig 2>/dev/null || true
+          rm -rf toolchain
+          mkdir -p toolchain/clang/host/linux-x86/clang-r383902/bin
+          echo -e '#!/bin/bash\necho "clang version 14.0.0"\nexit 0' > toolchain/clang/host/linux-x86/clang-r383902/bin/clang
+          chmod +x toolchain/clang/host/linux-x86/clang-r383902/bin/clang
+          sed -i 's/.*clang-version.*//g' scripts/gcc-version.sh 2>/dev/null || true
+          sed -i 's/.*clang.*//g' init/Kconfig 2>/dev/null || true
       - name: Build OC
         run: |
           cd kernel
           export ARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
+          export CC=aarch64-linux-gnu-gcc
           export KBUILD_BUILD_USER=ScorpioB9
           def=$(ls arch/arm64/configs/ | grep a03 | head -n1)
           echo "BUILD $def"
