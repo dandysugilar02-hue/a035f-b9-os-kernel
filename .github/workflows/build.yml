@@ -6,12 +6,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Deps
-        run: sudo apt-get update && sudo apt-get install -y git make clang-14 lld-14 gcc-aarch64-linux-gnu bc bison flex libssl-dev libelf-dev python3 libncurses-dev gcc-arm-linux-gnueabihf
+        run: sudo apt-get update && sudo apt-get install -y git make clang-14 lld-14 llvm-14 bc bison flex libssl-dev libelf-dev python3 libncurses-dev
       - name: Clone Source
         run: |
           rm -rf kernel
           git clone https://github.com/DevZillion/android_kernel_samsung_a03s.git --depth=1 kernel
-          ls kernel/arch/arm64/configs/ | grep a03
       - name: Fix Source
         run: |
           cd kernel
@@ -20,24 +19,24 @@ jobs:
           sed -i '/hxchipset/d' drivers/input/touchscreen/Kconfig 2>/dev/null || true
           mkdir -p toolchain/clang/host/linux-x86/clang-r383902/bin
           ln -sf /usr/bin/clang-14 toolchain/clang/host/linux-x86/clang-r383902/bin/clang
-          ln -sf /usr/bin/clang-14 toolchain/clang/host/linux-x86/clang-r383902/bin/clang++
-          mkdir -p toolchain/llvm-Snapdragon_LLVM_arm/bin
-          ln -sf /usr/bin/clang-14 toolchain/llvm-Snapdragon_LLVM_arm/bin/clang || true
-          chmod +x scripts/*.sh 2>/dev/null || true
+          ln -sf /usr/bin/ld.lld-14 /usr/bin/ld.lld
+          ln -sf /usr/bin/llvm-ar-14 /usr/bin/llvm-ar
+          ln -sf /usr/bin/llvm-nm-14 /usr/bin/llvm-nm
+          ln -sf /usr/bin/llvm-objdump-14 /usr/bin/llvm-objdump
+          ln -sf /usr/bin/llvm-objcopy-14 /usr/bin/llvm-objcopy
+          ln -sf /usr/bin/llvm-strip-14 /usr/bin/llvm-strip
       - name: Build OC
         run: |
           cd kernel
           export ARCH=arm64
           export CC=clang
-          export CLANG_TRIPLE=aarch64-linux-gnu-
-          export CROSS_COMPILE=aarch64-linux-gnu-
-          export CROSS_COMPILE_ARM32=arm-linux-gnueabihf-
+          export LLVM=1
+          export LLVM_IAS=1
           export KBUILD_BUILD_USER=ScorpioB9
-          export PATH=/usr/lib/llvm-14/bin:$PATH
           def=$(ls arch/arm64/configs/ | grep a03 | head -n1)
           echo "BUILD $def"
           make $def
-          make -j$(nproc) Image
+          make -j$(nproc) LLVM=1 LLVM_IAS=1 Image
           ls -lh arch/arm64/boot/
       - name: Upload
         uses: actions/upload-artifact@v4
