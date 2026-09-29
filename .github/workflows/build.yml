@@ -18,7 +18,6 @@ jobs:
           rm -rf drivers/input/touchscreen/mediatek/hxchipset
           sed -i '/hxchipset/d' drivers/input/touchscreen/mediatek/Kconfig 2>/dev/null || true
           sed -i '/hxchipset/d' drivers/input/touchscreen/Kconfig 2>/dev/null || true
-          # Buat fake toolchain biar ga error clang not found
           mkdir -p toolchain/clang/host/linux-x86/clang-r383902/bin
           ln -sf /usr/bin/clang-14 toolchain/clang/host/linux-x86/clang-r383902/bin/clang
           ln -sf /usr/bin/clang-14 toolchain/clang/host/linux-x86/clang-r383902/bin/clang++
@@ -34,17 +33,14 @@ jobs:
           export CROSS_COMPILE=aarch64-linux-gnu-
           export CROSS_COMPILE_ARM32=arm-linux-gnueabihf-
           export KBUILD_BUILD_USER=ScorpioB9
-          export KBUILD_BUILD_HOST=OC
           export PATH=/usr/lib/llvm-14/bin:$PATH
           def=$(ls arch/arm64/configs/ | grep a03 | head -n1)
           echo "BUILD $def"
           make $def
-          make -j$(nproc) Image dtb.img
+          make -j$(nproc) Image
           ls -lh arch/arm64/boot/
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: Scorpio-B9-OC-FIXED
-          path: |
-            kernel/arch/arm64/boot/Image
-            kernel/arch/arm64/boot/*.img
+          path: kernel/arch/arm64/boot/Image
