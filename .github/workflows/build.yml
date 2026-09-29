@@ -6,25 +6,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Deps
-        run: sudo apt-get update && sudo apt-get install -y git make clang lld gcc-aarch64-linux-gnu bc bison flex libssl-dev libelf-dev
+        run: sudo apt-get update && sudo apt-get install -y git make clang lld gcc-aarch64-linux-gnu bc bison flex libssl-dev libelf-dev python3 libncurses-dev
       - name: Clone Source
         run: |
           rm -rf kernel
           git clone https://github.com/DevZillion/android_kernel_samsung_a03s.git --depth=1 kernel
-          ls kernel/arch/arm64/configs
-      - name: Build
+          ls kernel/arch/arm64/configs/ | grep a03
+      - name: Build OC
         run: |
           cd kernel
           export ARCH=arm64
-          export SUBARCH=arm64
-          export KBUILD_BUILD_USER=Dandy
-          export KBUILD_BUILD_HOST=ScorpioB9
-          make a03s_defconfig || make a035f_defconfig || ls arch/arm64/configs/
-          make -j$(nproc) CC=clang CROSS_COMPILE=aarch64-linux-gnu- LD=ld.lld 2>&1 | tee build.log
+          export CC=clang
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export KBUILD_BUILD_USER=ScorpioB9
+          def=$(ls arch/arm64/configs/ | grep a03 | head -n1)
+          echo "BUILD $def"
+          make $def
+          make -j$(nproc) Image dtb.img
+          ls -lh arch/arm64/boot/
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: Image-B9-OC
+          name: Scorpio-B9-OC-FIXED
           path: |
-            kernel/arch/arm64/boot/Image*
-            kernel/build.log
+            kernel/arch/arm64/boot/Image
+            kernel/arch/arm64/boot/*.img
