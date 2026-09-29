@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Deps
-        run: sudo apt-get update && sudo apt-get install -y git make clang-14 lld-14 llvm-14 bc bison flex libssl-dev libelf-dev python3 libncurses-dev gcc-aarch64-linux-gnu
+        run: sudo apt-get update && sudo apt-get install -y git make clang-14 bc bison flex libssl-dev libelf-dev python3 libncurses-dev gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
       - name: Clone Source
         run: |
           rm -rf kernel
@@ -16,29 +16,20 @@ jobs:
           cd kernel
           rm -rf drivers/input/touchscreen/mediatek/hxchipset
           sed -i '/hxchipset/d' drivers/input/touchscreen/mediatek/Kconfig 2>/dev/null || true
-          sed -i '/hxchipset/d' drivers/input/touchscreen/Kconfig 2>/dev/null || true
           rm -rf toolchain
           mkdir -p toolchain/clang/host/linux-x86/clang-r383902/bin
-          sudo ln -sf /usr/bin/clang-14 toolchain/clang/host/linux-x86/clang-r383902/bin/clang
-          sudo ln -sf /usr/bin/ld.lld-14 /usr/bin/ld.lld
-          sudo ln -sf /usr/bin/llvm-ar-14 /usr/bin/llvm-ar
-          sudo ln -sf /usr/bin/llvm-nm-14 /usr/bin/llvm-nm
-          sudo ln -sf /usr/bin/llvm-objdump-14 /usr/bin/llvm-objdump
-          sudo ln -sf /usr/bin/llvm-objcopy-14 /usr/bin/llvm-objcopy
-          sudo ln -sf /usr/bin/llvm-strip-14 /usr/bin/llvm-strip
+          ln -sf /usr/bin/clang-14 toolchain/clang/host/linux-x86/clang-r383902/bin/clang
       - name: Build OC
         run: |
           cd kernel
           export ARCH=arm64
-          export CC=clang
           export CROSS_COMPILE=aarch64-linux-gnu-
-          export LLVM=1
-          export LLVM_IAS=1
+          export CC=aarch64-linux-gnu-gcc
           export KBUILD_BUILD_USER=ScorpioB9
           def=$(ls arch/arm64/configs/ | grep a03 | head -n1)
           echo "BUILD $def"
           make $def
-          make -j$(nproc) LLVM=1 LLVM_IAS=1 Image
+          make -j$(nproc) Image
           ls -lh arch/arm64/boot/
       - name: Upload
         uses: actions/upload-artifact@v4
