@@ -19,12 +19,12 @@ jobs:
           sed -i '/hxchipset/d' drivers/input/touchscreen/Kconfig 2>/dev/null || true
           mkdir -p toolchain/clang/host/linux-x86/clang-r383902/bin
           ln -sf /usr/bin/clang-14 toolchain/clang/host/linux-x86/clang-r383902/bin/clang
-          ln -sf /usr/bin/ld.lld-14 /usr/bin/ld.lld
-          ln -sf /usr/bin/llvm-ar-14 /usr/bin/llvm-ar
-          ln -sf /usr/bin/llvm-nm-14 /usr/bin/llvm-nm
-          ln -sf /usr/bin/llvm-objdump-14 /usr/bin/llvm-objdump
-          ln -sf /usr/bin/llvm-objcopy-14 /usr/bin/llvm-objcopy
-          ln -sf /usr/bin/llvm-strip-14 /usr/bin/llvm-strip
+          sudo ln -sf /usr/bin/ld.lld-14 /usr/bin/ld.lld
+          sudo ln -sf /usr/bin/llvm-ar-14 /usr/bin/llvm-ar
+          sudo ln -sf /usr/bin/llvm-nm-14 /usr/bin/llvm-nm
+          sudo ln -sf /usr/bin/llvm-objdump-14 /usr/bin/llvm-objdump
+          sudo ln -sf /usr/bin/llvm-objcopy-14 /usr/bin/llvm-objcopy
+          sudo ln -sf /usr/bin/llvm-strip-14 /usr/bin/llvm-strip
       - name: Build OC
         run: |
           cd kernel
@@ -37,9 +37,4 @@ jobs:
           echo "BUILD $def"
           make $def
           make -j$(nproc) LLVM=1 LLVM_IAS=1 Image
-          ls -lh arch/arm64/boot/
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: Scorpio-B9-OC-FIXED
-          path: kernel/arch/arm64/boot/Image
+          ls -lh
