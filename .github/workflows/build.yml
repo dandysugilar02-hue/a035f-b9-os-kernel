@@ -1,0 +1,22 @@
+name: Build Scorpio B9 OC
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Deps
+        run: sudo apt-get install -y git make clang lld
+      - name: Clone Source
+        run: git clone --depth=1 https://github.com/physwizz/a035f-kernel -b physwizz kernel
+      - name: Build
+        run: |
+          cd kernel
+          export ARCH=arm64
+          make a035f_defconfig
+          make -j$(nproc) CC=clang
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: Image-B9-OC
+          path: kernel/arch/arm64/boot/Image
