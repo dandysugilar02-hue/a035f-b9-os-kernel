@@ -10,8 +10,8 @@ jobs:
       - name: Clone Source
         run: |
           rm -rf kernel
-          git clone https://github.com/physwizz-dev/a035f-kernel.git --depth=1 kernel || git clone https://github.com/ferstar/kernel_samsung_a035f.git --depth=1 kernel
-          ls kernel
+          git clone https://github.com/DevZillion/android_kernel_samsung_a03s.git --depth=1 kernel
+          ls kernel/arch/arm64/configs
       - name: Build
         run: |
           cd kernel
@@ -19,10 +19,12 @@ jobs:
           export SUBARCH=arm64
           export KBUILD_BUILD_USER=Dandy
           export KBUILD_BUILD_HOST=ScorpioB9
-          make a035f_defconfig || make a03s_defconfig || make defconfig
-          make -j$(nproc) CC=clang CROSS_COMPILE=aarch64-linux-gnu- LD=ld.lld
+          make a03s_defconfig || make a035f_defconfig || ls arch/arm64/configs/
+          make -j$(nproc) CC=clang CROSS_COMPILE=aarch64-linux-gnu- LD=ld.lld 2>&1 | tee build.log
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: Image-B9-OC
-          path: kernel/arch/arm64/boot/Image*
+          path: |
+            kernel/arch/arm64/boot/Image*
+            kernel/build.log
