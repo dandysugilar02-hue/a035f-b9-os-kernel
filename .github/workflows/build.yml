@@ -2,7 +2,7 @@ name: Build Scorpio B9 OC
 on: [push, workflow_dispatch]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Install Deps
@@ -12,6 +12,13 @@ jobs:
           rm -rf kernel
           git clone https://github.com/DevZillion/android_kernel_samsung_a03s.git --depth=1 kernel
           ls kernel/arch/arm64/configs/ | grep a03
+      - name: Fix Kconfig Error
+        run: |
+          cd kernel
+          # Hapus driver touchscreen mediatek yang bikin error '+'
+          rm -rf drivers/input/touchscreen/mediatek/hxchipset
+          sed -i '/hxchipset/d' drivers/input/touchscreen/mediatek/Kconfig 2>/dev/null || true
+          sed -i '/hxchipset/d' drivers/input/touchscreen/Kconfig 2>/dev/null || true
       - name: Build OC
         run: |
           cd kernel
