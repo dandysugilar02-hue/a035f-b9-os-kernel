@@ -6,17 +6,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Deps
-        run: sudo apt-get install -y git make clang lld
+        run: sudo apt-get update && sudo apt-get install -y git make clang lld gcc-aarch64-linux-gnu bc bison flex libssl-dev libelf-dev
       - name: Clone Source
-        run: git clone --depth=1 https://github.com/physwizz/a035f-kernel -b physwizz kernel
+        run: |
+          rm -rf kernel
+          git clone https://github.com/physwizz-dev/a035f-kernel.git --depth=1 kernel || git clone https://github.com/ferstar/kernel_samsung_a035f.git --depth=1 kernel
+          ls kernel
       - name: Build
         run: |
           cd kernel
           export ARCH=arm64
-          make a035f_defconfig
-          make -j$(nproc) CC=clang
+          export SUBARCH=arm64
+          export KBUILD_BUILD_USER=Dandy
+          export KBUILD_BUILD_HOST=ScorpioB9
+          make a035f_defconfig || make a03s_defconfig || make defconfig
+          make -j$(nproc) CC=clang CROSS_COMPILE=aarch64-linux-gnu- LD=ld.lld
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: Image-B9-OC
-          path: kernel/arch/arm64/boot/Image
+          path: kernel/arch/arm64/boot/Image*
